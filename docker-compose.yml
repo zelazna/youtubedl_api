@@ -1,0 +1,23 @@
+version: "3.9"
+
+
+# Settings and configurations that are common for all containers
+x-common: &common
+  environment:
+    MINIO_ROOT_USER: minio
+    MINIO_ROOT_PASSWORD: minio123
+  networks:
+    - ytdwnld_ytdwnld
+
+services:
+  api:
+    <<: *common
+    build: .
+    stdin_open: true
+    tty: true
+    volumes:
+      - "./:/app"
+
+networks:
+  ytdwnld_ytdwnld:
+    external: true
