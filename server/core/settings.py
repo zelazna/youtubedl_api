@@ -37,13 +37,13 @@ class Settings(BaseSettings):
             path=f"/{values.get('POSTGRES_DB') or ''}",
         )
 
-    # @validator("VIDEO_ADAPTER_IMPL", pre=True)
-    # def instanciate_adapter(cls, v: Optional[str], values: dict[str, Any]) -> Any:
-    #     match values.get("VIDEO_ADAPTER"):
-    #         case "pytube":
-    #             return PytubeAdapter()
-    #         case _:
-    #             return PytubeAdapter()
+    @validator("VIDEO_ADAPTER_IMPL", pre=True)
+    def instanciate_adapter(cls, v: Optional[str], values: dict[str, Any]) -> Any:
+        match values.get("VIDEO_ADAPTER"):
+            case "pytube":
+                return PytubeAdapter()
+            case _:
+                return PytubeAdapter()
 
     class Config:
         case_sensitive = True
