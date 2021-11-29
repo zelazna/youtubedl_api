@@ -1,22 +1,31 @@
-import tempfile
-
 from fastapi import APIRouter, BackgroundTasks, Depends, status
 from sqlalchemy.orm import Session
 
 import server.api.requests.models as models
 import server.api.requests.schemas as schemas
+from server.api.downloads import Download
 from server.api.shared import get_db
 from server.core import settings
 
 requests_router = APIRouter(prefix="/requests")
 
 
-def download_file(url: str):
+def download_file(request: models.DownloadRequest, db: Session):
     if adapter := settings.VIDEO_ADAPTER_IMPL:
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            adapter.download_video(url, tmpdirname)
-    else:
-        raise Exception
+        file, thumbnail, name = adapter.download_video(
+            request.url, settings.STATIC_FOLDER
+        )
+        request.state = models.DownloadState.done
+        download = Download(
+            download_request=request,
+            name=name,
+            vanilla_url=request.url,
+            thumbnail_url=thumbnail,
+            url=file,
+        )
+        db.add(download)
+        db.commit()
+        db.refresh(download)
 
 
 @requests_router.get("/", response_model=list[schemas.DownloadRequestInDB])
@@ -38,5 +47,5 @@ def create_download_request(
     db.add(db_item)
     db.commit()
     db.refresh(db_item)
-    background_tasks.add_task(download_file, db_item.url)
+    background_tasks.add_task(download_file, db_item, db)
     return db_item

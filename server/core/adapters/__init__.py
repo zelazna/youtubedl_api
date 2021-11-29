@@ -5,7 +5,7 @@ class VideoNotFound(Exception):
     pass
 
 
-VideoData = TypedDict("VideoData", video_file=str, thumbnail_file=str, name=str)
+VideoData = tuple[str, str, str]
 
 
 class BaseAdapter:

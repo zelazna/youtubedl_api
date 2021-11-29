@@ -1,11 +1,10 @@
 import enum
 
 from sqlalchemy import Column, Enum, Integer, String
+from sqlalchemy.orm import relationship
 
 from server.api.shared import LinkType
 from server.core import Base
-
-# from sqlalchemy.orm import relationship
 
 
 class DownloadState(enum.Enum):
@@ -20,4 +19,6 @@ class DownloadRequest(Base):
     type = Column("type", Enum(LinkType))
     url = Column("url", String)
     state = Column("state", Enum(DownloadState), default=DownloadState.pending)
-    # download = relationship("Download", back_populates="download_request")
+    download = relationship(
+        "Download", back_populates="download_request", uselist=False
+    )
