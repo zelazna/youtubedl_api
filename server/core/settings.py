@@ -3,7 +3,7 @@ from typing import Any, Optional
 from pydantic import BaseSettings, PostgresDsn, validator
 from pydantic.networks import PostgresDsn
 
-# from server.core.adapters import BaseAdapter
+from server.core.adapters import BaseAdapter, PytubeAdapter
 
 
 class Settings(BaseSettings):
@@ -21,7 +21,9 @@ class Settings(BaseSettings):
     SQLALCHEMY_DATABASE_URI: Optional[PostgresDsn] = None
 
     STATIC_FOLDER: str = "/static"
-    # VIDEO_ADAPTER: BaseAdapter
+
+    VIDEO_ADAPTER: Optional[str]
+    VIDEO_ADAPTER_IMPL: Optional[BaseAdapter] = None
 
     @validator("SQLALCHEMY_DATABASE_URI", pre=True)
     def assemble_db_connection(cls, v: Optional[str], values: dict[str, Any]) -> Any:
@@ -34,6 +36,14 @@ class Settings(BaseSettings):
             host=values.get("POSTGRES_SERVER", "localhost"),
             path=f"/{values.get('POSTGRES_DB') or ''}",
         )
+
+    # @validator("VIDEO_ADAPTER_IMPL", pre=True)
+    # def instanciate_adapter(cls, v: Optional[str], values: dict[str, Any]) -> Any:
+    #     match values.get("VIDEO_ADAPTER"):
+    #         case "pytube":
+    #             return PytubeAdapter()
+    #         case _:
+    #             return PytubeAdapter()
 
     class Config:
         case_sensitive = True

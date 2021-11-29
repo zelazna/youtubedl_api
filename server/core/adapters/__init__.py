@@ -20,3 +20,6 @@ class BaseAdapter:
 
     def download_playlist(self, url: str, folder: str) -> list[VideoData]:
         raise NotImplementedError
+
+
+from .pytube_adapter import PytubeAdapter
