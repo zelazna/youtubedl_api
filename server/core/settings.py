@@ -7,13 +7,6 @@ from server.core.adapters import BaseAdapter, PytubeAdapter
 
 
 class Settings(BaseSettings):
-    BUCKET_NAME: str
-    AWS_REGION: str = "eu-west-2"
-    AWS_AK: str
-    AWS_SK: str
-    AWS_ENDPOINT: Optional[str]
-    BOTO_USE_SSL: Optional[bool] = True
-
     POSTGRES_SERVER: str
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str

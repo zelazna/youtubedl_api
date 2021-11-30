@@ -3,7 +3,8 @@ from typing import Generator
 
 import boto3
 
-from server.api.requests.models import DownloadRequest
+from server.api.downloads.models import Download
+from server.api.requests.models import Request
 from server.core import SessionLocal, engine, settings
 from server.core.base import Base
 

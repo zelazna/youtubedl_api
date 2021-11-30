@@ -1,37 +1,40 @@
+from typing import Optional
+
 from pydantic import BaseModel
 
-from server.api.shared import LinkType
+from server.api.downloads.schemas import Download
 
-from .models import DownloadState
+from .models import LinkType, State
 
 
 # Shared properties
-class DownloadRequestBase(BaseModel):
+class RequestBase(BaseModel):
     url: str
     type: LinkType
 
 
 # Properties to receive on item creation
-class DownloadRequestCreate(DownloadRequestBase):
+class RequestCreate(RequestBase):
     ...
 
 
 # Properties shared by models stored in DB
-class DownloadRequestInDBBase(DownloadRequestBase):
+class RequestInDBBase(RequestBase):
     id: int
     url: str
     type: LinkType
-    state: DownloadState
+    state: State
+    download: Optional[Download]
 
     class Config:
         orm_mode = True
 
 
 # Properties to return to client
-class DownloadRequest(DownloadRequestInDBBase):
+class Request(RequestInDBBase):
     pass
 
 
 # Properties properties stored in DB
-class DownloadRequestInDB(DownloadRequestInDBBase):
+class RequestInDB(RequestInDBBase):
     pass

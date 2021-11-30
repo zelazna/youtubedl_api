@@ -3,22 +3,24 @@ import enum
 from sqlalchemy import Column, Enum, Integer, String
 from sqlalchemy.orm import relationship
 
-from server.api.shared import LinkType
 from server.core import Base
 
 
-class DownloadState(enum.Enum):
+class LinkType(enum.Enum):
+    video = "video"
+    playlist = "playlist"
+
+
+class State(enum.Enum):
     pending = "pending"
     in_progress = "in progress"
-    error = "error"
+    in_error = "error"
     done = "done"
 
 
-class DownloadRequest(Base):
+class Request(Base):
     id = Column(Integer, primary_key=True, index=True)
     type = Column("type", Enum(LinkType))
     url = Column("url", String)
-    state = Column("state", Enum(DownloadState), default=DownloadState.pending)
-    download = relationship(
-        "Download", back_populates="download_request", uselist=False
-    )
+    state = Column("state", Enum(State), default=State.pending)
+    download = relationship("Download", back_populates="request", uselist=False)

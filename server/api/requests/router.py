@@ -3,49 +3,51 @@ from sqlalchemy.orm import Session
 
 import server.api.requests.models as models
 import server.api.requests.schemas as schemas
-from server.api.downloads import Download
+from server.api.downloads import DownloadCreate, downloads
 from server.api.shared import get_db
 from server.core import settings
+
+from .crud import requests
 
 requests_router = APIRouter(prefix="/requests")
 
 
-def download_file(request: models.DownloadRequest, db: Session):
-    if adapter := settings.VIDEO_ADAPTER_IMPL:
-        file, thumbnail, name = adapter.download_video(
-            request.url, settings.STATIC_FOLDER
-        )
-        request.state = models.DownloadState.done
-        download = Download(
-            download_request=request,
-            name=name,
-            vanilla_url=request.url,
-            thumbnail_url=thumbnail,
-            url=file,
-        )
-        db.add(download)
-        db.commit()
-        db.refresh(download)
+def download_file(request: models.Request, db: Session):
+    try:
+        if adapter := settings.VIDEO_ADAPTER_IMPL:
+            requests.set_in_progress(db, request)
+            file, thumbnail, name = adapter.download_video(
+                request.url, settings.STATIC_FOLDER
+            )
+            requests.set_done(db, request)
+            download = DownloadCreate(
+                request_id=request.id,
+                name=name,
+                vanilla_url=request.url,
+                thumbnail_url=thumbnail,
+                url=file,
+            )
+            downloads.create(db, obj_in=download)
+        else:
+            raise Exception("No Adapter Configured")
+    except Exception:
+        requests.set_in_error(db, request)
+        raise
 
 
-@requests_router.get("/", response_model=list[schemas.DownloadRequestInDB])
-def get_download_requests(
-    skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
-):
-    return db.query(models.DownloadRequest).offset(skip).limit(limit).all()
+@requests_router.get("/", response_model=list[schemas.RequestInDB])
+def get_requests(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    return requests.get_multi(db, skip=skip, limit=limit)
 
 
 @requests_router.post(
-    "/", status_code=status.HTTP_200_OK, response_model=schemas.DownloadRequestInDB
+    "/", status_code=status.HTTP_200_OK, response_model=schemas.RequestInDB
 )
-def create_download_request(
-    download_request: schemas.DownloadRequestCreate,
+def create_request(
+    request: schemas.RequestCreate,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ):
-    db_item = models.DownloadRequest(**download_request.dict())
-    db.add(db_item)
-    db.commit()
-    db.refresh(db_item)
-    background_tasks.add_task(download_file, db_item, db)
-    return db_item
+    req = requests.create(db, obj_in=request)
+    background_tasks.add_task(download_file, req, db)
+    return req

@@ -1,10 +1,11 @@
-import os
 import urllib.request
+from pathlib import Path
 from typing import Any, Optional, Union
 
-from core.adapters import BaseAdapter, VideoData, VideoNotFound
 from pytube import YouTube
 from pytube.contrib.playlist import Playlist
+
+from server.core.adapters import BaseAdapter, VideoData, VideoNotFound
 
 
 class PytubeAdapter(BaseAdapter):
@@ -21,9 +22,9 @@ class PytubeAdapter(BaseAdapter):
 
         if stream := yt.streams.filter(file_extension="mp4").first():
             video_file = stream.download(output_path=folder)
-            video_name = os.path.basename(video_file)
+            video_name = Path(video_file).stem
             thumnnail_file, _ = urllib.request.urlretrieve(
-                yt.thumbnail_url, f"{folder}/thumb_{video_name}"
+                yt.thumbnail_url, f"{folder}/thumb_{video_name}.jpg"
             )
             return (video_file, thumnnail_file, video_name)
         raise VideoNotFound
