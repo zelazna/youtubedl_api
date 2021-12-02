@@ -10,6 +10,7 @@ from server.api.downloads import DownloadCreate, downloads
 from server.api.shared import get_db
 from server.core import Request, logger, settings
 from server.core.adapters import BaseAdapter
+from server.core.models import State
 
 from .crud import requests
 
@@ -18,7 +19,7 @@ requests_router = APIRouter(prefix="/requests")
 FormatNeedFFMPEG = {"mp3"}
 
 
-def convert_to_format(file: str, format: str):
+def convert_to_format(file: str, format: str) -> str:
     new_filename = f"{Path(file).stem}.{format}"
     subprocess.Popen(
         [
@@ -35,11 +36,10 @@ def download_file(request: Request, db: Session, format: str = "mp4"):
     try:
         convert_to = None
         if format in FormatNeedFFMPEG:
-            convert_to = format
-            format = "mp4"
+            format, convert_to = "mp4", format
 
         logger.debug("starting download of %s", request.url)
-        request = requests.set_in_progress(db, request)
+        request = requests.set_state(db, request, State.in_progress)
         adapter = cast(BaseAdapter, settings.VIDEO_ADAPTER_IMPL)
         file, thumbnail, name = adapter.download_video(
             request.url, settings.STATIC_FOLDER, format
@@ -49,9 +49,9 @@ def download_file(request: Request, db: Session, format: str = "mp4"):
         if convert_to:
             file = convert_to_format(file, convert_to)
 
-        request = requests.set_done(db, request)
+        request = requests.set_state(db, request, State.done)
     except Exception as e:
-        requests.set_in_error(db, request)
+        requests.set_state(db, request, State.in_error)
         logger.error(e)
     else:
         download = DownloadCreate(

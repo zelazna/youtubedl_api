@@ -1,6 +1,6 @@
 import urllib.request
 from pathlib import Path
-from typing import Any, Literal, Optional, Union
+from typing import Any, Optional, Union
 
 from pytube import YouTube
 from pytube.contrib.playlist import Playlist
