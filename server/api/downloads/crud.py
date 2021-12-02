@@ -1,6 +1,4 @@
-from server.core import CRUDBase
-
-from .models import Download
+from server.core import CRUDBase, Download
 
 
 class CrudDownloads(CRUDBase):

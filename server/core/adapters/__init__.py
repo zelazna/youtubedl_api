@@ -1,4 +1,4 @@
-from typing import Any, Optional, TypedDict
+from typing import Any, Optional
 
 
 class VideoNotFound(Exception):
@@ -15,7 +15,7 @@ class BaseAdapter:
     def on_complete_callback(self, stream: Any, file_path: Optional[str]):
         raise NotImplementedError
 
-    def download_video(self, video: str, folder: str) -> VideoData:
+    def download_video(self, video: str, folder: str, file_extension: str) -> VideoData:
         raise NotImplementedError
 
     def download_playlist(self, url: str, folder: str) -> list[VideoData]:

@@ -1,8 +1,6 @@
 from sqlalchemy.orm.session import Session
 
-from server.core import CRUDBase
-
-from .models import Request, State
+from server.core import CRUDBase, Request, State
 
 
 class CrudDownloads(CRUDBase):

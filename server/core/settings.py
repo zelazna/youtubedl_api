@@ -1,12 +1,44 @@
+import logging
+from logging.config import dictConfig
 from typing import Any, Optional
 
-from pydantic import BaseSettings, PostgresDsn, validator
+from pydantic import BaseModel, BaseSettings, PostgresDsn, validator
 from pydantic.networks import PostgresDsn
 
 from server.core.adapters import BaseAdapter, PytubeAdapter
 
 
+class LogConfig(BaseModel):
+    """Logging configuration to be set for the server"""
+
+    LOGGER_NAME: str = "api"
+    LOG_FORMAT: str = "%(levelprefix)s %(asctime)s %(message)s"
+    LOG_LEVEL: str = "DEBUG"
+
+    # Logging config
+    version = 1
+    disable_existing_loggers = False
+    formatters = {
+        "default": {
+            "()": "uvicorn.logging.DefaultFormatter",
+            "fmt": LOG_FORMAT,
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        },
+    }
+    handlers = {
+        "default": {
+            "formatter": "default",
+            "class": "logging.StreamHandler",
+            "stream": "ext://sys.stderr",
+        },
+    }
+    loggers = {
+        "api": {"handlers": ["default"], "level": LOG_LEVEL},
+    }
+
+
 class Settings(BaseSettings):
+    LOGCONFIG: LogConfig = LogConfig()
     POSTGRES_SERVER: str
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
@@ -43,3 +75,5 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+logger = logging.getLogger("api")
+dictConfig(settings.LOGCONFIG.dict())

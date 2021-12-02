@@ -3,8 +3,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 from server.api.downloads.schemas import Download
-
-from .models import LinkType, State
+from server.core import LinkType, State
 
 
 # Shared properties
