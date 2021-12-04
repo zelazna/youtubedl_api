@@ -10,6 +10,7 @@ from server.core import LinkType, State
 class RequestBase(BaseModel):
     url: str
     type: LinkType
+    extension: str
 
 
 # Properties to receive on item creation
@@ -20,8 +21,6 @@ class RequestCreate(RequestBase):
 # Properties shared by models stored in DB
 class RequestInDBBase(RequestBase):
     id: int
-    url: str
-    type: LinkType
     state: State
     download: Optional[Download]
 

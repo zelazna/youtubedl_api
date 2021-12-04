@@ -46,4 +46,5 @@ class Request(Base):
     type = Column("type", Enum(LinkType))
     url = Column("url", String)
     state = Column("state", Enum(State), default=State.pending)
+    extension = Column("extension", String)
     download = relationship("Download", back_populates="request", uselist=False)

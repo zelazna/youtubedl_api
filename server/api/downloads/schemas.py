@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel
 
 
@@ -14,9 +16,10 @@ class DownloadCreate(DownloadBase):
 
 
 # Properties shared by models stored in DB
-class DownloadInDBBase(DownloadBase):
+class DownloadInDBBase(DownloadCreate):
     id: int
     request_id: int
+    created_at: datetime
 
     class Config:
         orm_mode = True

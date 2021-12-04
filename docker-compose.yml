@@ -18,7 +18,8 @@ services:
     volumes:
       - "./:/app"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     ports:
       - 8000:8000
 
@@ -26,3 +27,8 @@ services:
     <<: *common
     image: postgres
     restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

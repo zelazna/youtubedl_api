@@ -1,7 +1,7 @@
-import subprocess
 from pathlib import Path
 from typing import cast
 
+import ffmpeg
 from fastapi import APIRouter, BackgroundTasks, Depends, status
 from sqlalchemy.orm import Session
 
@@ -16,38 +16,33 @@ from .crud import requests
 
 requests_router = APIRouter(prefix="/requests")
 
-FormatNeedFFMPEG = {"mp3"}
+ExtensionNeedFFMPEG = {"mp3"}
 
 
-def convert_to_format(file: str, format: str) -> str:
-    new_filename = f"{Path(file).stem}.{format}"
-    subprocess.Popen(
-        [
-            "ffmpeg",
-            "-i",
-            file,
-            new_filename,
-        ]
-    ).wait()
+def convert_to_extension(file: str, extension: str) -> str:
+    # TODO https://github.com/kkroening/ffmpeg-python/blob/master/examples/README.md#generate-thumbnail-for-video
+    logger.debug("converting %s to %s", file, extension)
+    new_filename = f"{settings.STATIC_FOLDER}/{Path(file).stem}.{extension}"
+    ffmpeg.input(file).output(new_filename).run(quiet=True, overwrite_output=True)
     return new_filename
 
 
-def download_file(request: Request, db: Session, format: str = "mp4"):
+def download_file(request: Request, db: Session, extension: str = "mp4"):
     try:
         convert_to = None
-        if format in FormatNeedFFMPEG:
-            format, convert_to = "mp4", format
+        if extension in ExtensionNeedFFMPEG:
+            extension, convert_to = "mp4", extension
 
         logger.debug("starting download of %s", request.url)
         request = requests.set_state(db, request, State.in_progress)
         adapter = cast(BaseAdapter, settings.VIDEO_ADAPTER_IMPL)
         file, thumbnail, name = adapter.download_video(
-            request.url, settings.STATIC_FOLDER, format
+            request.url, settings.STATIC_FOLDER, extension
         )
         logger.debug("download of %s finished", request.url)
 
         if convert_to:
-            file = convert_to_format(file, convert_to)
+            file = convert_to_extension(file, convert_to)
 
         request = requests.set_state(db, request, State.done)
     except Exception as e:
@@ -62,7 +57,7 @@ def download_file(request: Request, db: Session, format: str = "mp4"):
             url=file,
         )
         download = downloads.create(db, obj_in=download)
-        logger.debug("creating a download with name: %s", download.file)
+        logger.debug("creating a download with name: %s", download.url)
 
 
 @requests_router.get("/", response_model=list[schemas.RequestInDB])
@@ -84,5 +79,5 @@ def create_request(
     db: Session = Depends(get_db),
 ):
     req = requests.create(db, obj_in=request)
-    background_tasks.add_task(download_file, req, db)
+    background_tasks.add_task(download_file, req, db, request.extension)
     return req

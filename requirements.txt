@@ -41,3 +41,4 @@ uvicorn==0.15.0
 virtualenv==20.10.0
 yarl==1.7.2
 psycopg2
+ffmpeg-python
