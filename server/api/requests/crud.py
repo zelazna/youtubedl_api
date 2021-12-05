@@ -1,5 +1,6 @@
-from server.core import CRUDBase, Request, State
 from sqlalchemy.orm.session import Session
+
+from server.core import CRUDBase, Request, State
 
 
 class CrudRequests(CRUDBase):
