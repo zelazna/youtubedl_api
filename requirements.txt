@@ -1,5 +1,6 @@
 anyio==3.3.4
 asgiref==3.4.1
+backports.entry-points-selectable==1.1.1
 black==21.11b1
 boto3==1.20.5
 botocore==1.23.5
@@ -8,9 +9,12 @@ click==8.0.3
 databases==0.5.3
 distlib==0.3.3
 fastapi==0.70.0
+ffmpeg-python==0.2.0
 filelock==3.3.2
+future==0.18.2
 greenlet==1.1.2
 h11==0.12.0
+httptools==0.2.0
 identify==2.3.5
 idna==3.3
 jmespath==0.10.0
@@ -22,8 +26,10 @@ pamqp==2.3.0
 pathspec==0.9.0
 platformdirs==2.4.0
 pre-commit==2.15.0
+psycopg2==2.9.2
 pydantic==1.8.2
 python-dateutil==2.8.2
+python-dotenv==0.19.2
 pytube==11.0.1
 PyYAML==6.0
 regex==2021.11.10
@@ -38,7 +44,8 @@ tomli==1.2.2
 typing-extensions==3.10.0.2
 urllib3==1.26.7
 uvicorn==0.15.0
+uvloop==0.16.0
 virtualenv==20.10.0
+watchgod==0.7
+websockets==10.1
 yarl==1.7.2
-psycopg2
-ffmpeg-python

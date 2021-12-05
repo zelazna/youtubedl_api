@@ -1,16 +1,19 @@
+import asyncio
+import json
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import cast
 
 import ffmpeg
-from fastapi import APIRouter, BackgroundTasks, Depends, status
-from sqlalchemy.orm import Session
-
 import server.api.requests.schemas as schemas
+from fastapi import APIRouter, BackgroundTasks, Depends, status
+from fastapi.encoders import jsonable_encoder
 from server.api.downloads import DownloadCreate, downloads
 from server.api.shared import get_db
-from server.core import Request, logger, settings
+from server.core import Request, logger, manager, settings
 from server.core.adapters import BaseAdapter
 from server.core.models import State
+from sqlalchemy.orm import Session
 
 from .crud import requests
 
@@ -27,26 +30,51 @@ def convert_to_extension(file: str, extension: str) -> str:
     return new_filename
 
 
-def download_file(request: Request, db: Session, extension: str = "mp4"):
+async def broadcast_state(request: Request):
+    await manager.broadcast(
+        json.dumps(
+            {
+                "data": {
+                    "request": jsonable_encoder(request),
+                    "download": jsonable_encoder(request.download),
+                }
+            }
+        )
+    )
+
+
+async def download_file(
+    request: Request,
+    db: Session,
+    extension: str = "mp4",
+):
     try:
+        loop = asyncio.get_running_loop()
+        executor = ThreadPoolExecutor()
         convert_to = None
         if extension in ExtensionNeedFFMPEG:
             extension, convert_to = "mp4", extension
 
         logger.debug("starting download of %s", request.url)
         request = requests.set_state(db, request, State.in_progress)
+        await broadcast_state(request)
         adapter = cast(BaseAdapter, settings.VIDEO_ADAPTER_IMPL)
-        file, thumbnail, name = adapter.download_video(
-            request.url, settings.STATIC_FOLDER, extension
+        file, thumbnail, name = await loop.run_in_executor(
+            executor,
+            adapter.download_video,
+            request.url,
+            settings.STATIC_FOLDER,
+            extension,
         )
         logger.debug("download of %s finished", request.url)
 
         if convert_to:
-            file = convert_to_extension(file, convert_to)
-
-        request = requests.set_state(db, request, State.done)
+            file = await loop.run_in_executor(
+                executor, convert_to_extension, file, convert_to
+            )
     except Exception as e:
         requests.set_state(db, request, State.in_error)
+        await broadcast_state(request)
         logger.error(e)
     else:
         download = DownloadCreate(
@@ -57,6 +85,11 @@ def download_file(request: Request, db: Session, extension: str = "mp4"):
             url=file,
         )
         download = downloads.create(db, obj_in=download)
+        # TODO find why session.flush discard current object
+        request = requests.set_state(
+            db, cast(Request, requests.get(db, request.id)), State.done
+        )
+        await broadcast_state(request)
         logger.debug("creating a download with name: %s", download.url)
 
 
