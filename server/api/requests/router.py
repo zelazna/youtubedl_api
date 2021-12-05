@@ -32,16 +32,9 @@ def convert_to_extension(file: str, extension: str) -> str:
 
 
 async def broadcast_state(request: Request):
-    await manager.broadcast(
-        json.dumps(
-            {
-                "data": {
-                    "request": jsonable_encoder(request),
-                    "download": jsonable_encoder(request.download),
-                }
-            }
-        )
-    )
+    request_dict = jsonable_encoder(request)
+    request_dict["download"] = jsonable_encoder(request.download)
+    await manager.broadcast(json.dumps(request_dict))
 
 
 async def download_file(
@@ -50,6 +43,7 @@ async def download_file(
     extension: str = "mp4",
 ):
     try:
+        await broadcast_state(request)
         loop = asyncio.get_running_loop()
         executor = ThreadPoolExecutor()
         convert_to = None
