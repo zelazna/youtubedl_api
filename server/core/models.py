@@ -1,5 +1,4 @@
 import enum
-from typing import Any
 
 from sqlalchemy import Column, Enum, ForeignKey, Integer, String
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
@@ -38,13 +37,15 @@ class Download(Base):
     vanilla_url = Column("vanilla_url", String)
     thumbnail_url = Column("thumbnail_url", String)
     url = Column("url", String)
-    request_id = Column(Integer, ForeignKey("request.id"))
+    request_id = Column(Integer, ForeignKey("request.id", ondelete="CASCADE"))
     request = relationship("Request", back_populates="download")
 
 
 class Request(Base):
     type = Column("type", Enum(LinkType))
-    url = Column("url", String)
+    url = Column("url", String, unique=True)
     state = Column("state", Enum(State), default=State.pending)
     extension = Column("extension", String)
-    download = relationship("Download", back_populates="request", uselist=False)
+    download = relationship(
+        "Download", back_populates="request", uselist=False, cascade="all, delete"
+    )

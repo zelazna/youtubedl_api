@@ -31,7 +31,7 @@ class PytubeAdapter(BaseAdapter):
             thumnnail_file, _ = urllib.request.urlretrieve(
                 yt.thumbnail_url, f"{folder}/thumb_{video_name}.jpg"
             )
-            return (video_file, thumnnail_file, video_name)
+            return video_file, thumnnail_file, video_name
         raise VideoNotFound
 
     def download_playlist(self, url: str, folder: str) -> list[VideoData]:

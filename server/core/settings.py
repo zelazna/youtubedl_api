@@ -45,6 +45,7 @@ class Settings(BaseSettings):
     POSTGRES_DB: str
     SQLALCHEMY_DATABASE_URI: Optional[PostgresDsn] = None
 
+    # TODO Convert it to Path type
     STATIC_FOLDER: str = "/files"
 
     VIDEO_ADAPTER: Optional[str]
