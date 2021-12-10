@@ -51,6 +51,12 @@ class Settings(BaseSettings):
     VIDEO_ADAPTER: Optional[str]
     VIDEO_ADAPTER_IMPL: Optional[BaseAdapter] = None
 
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 50
+    SECRET_KEY: str = "CHANGE_ME"
+
+    FIRST_SUPERUSER: str = "root@root.com"
+    FIRST_SUPERUSER_PASSWORD: str = "root"
+
     @validator("SQLALCHEMY_DATABASE_URI", pre=True)
     def assemble_db_connection(cls, v: Optional[str], values: dict[str, Any]) -> Any:
         if isinstance(v, str):
@@ -73,6 +79,7 @@ class Settings(BaseSettings):
 
     class Config:
         case_sensitive = True
+        # arbitrary_types_allowed = True
 
 
 settings = Settings()

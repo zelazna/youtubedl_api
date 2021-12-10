@@ -3,7 +3,8 @@ import json
 from fastapi import WebSocket
 from fastapi.encoders import jsonable_encoder
 
-from server.core import Request, logger
+from server.core.settings import logger
+from server.models.request import Request
 
 
 class WsConnectionManager:

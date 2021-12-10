@@ -2,9 +2,10 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from server.api.downloads import downloads_router
 from server.api.requests import requests_router
-from server.core import manager, settings
+from server.api.users import user_router
+from server.core.settings import settings
+from server.core.ws_manager import manager
 
 app = FastAPI()
 app.add_middleware(
@@ -15,7 +16,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(requests_router)
-app.include_router(downloads_router)
+app.include_router(user_router)
 app.mount("/files", StaticFiles(directory=settings.STATIC_FOLDER), name="files")
 
 

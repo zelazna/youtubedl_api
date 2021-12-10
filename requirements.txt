@@ -49,3 +49,7 @@ virtualenv==20.10.0
 watchgod==0.7
 websockets==10.1
 yarl==1.7.2
+python-multipart
+passlib[bcrypt]
+python-jose[bcrypt]
+pydantic[email]
