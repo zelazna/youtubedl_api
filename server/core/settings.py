@@ -51,7 +51,7 @@ class Settings(BaseSettings):
     VIDEO_ADAPTER: Optional[str]
     VIDEO_ADAPTER_IMPL: Optional[BaseAdapter] = None
 
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 50
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 4320  # 3 days
     SECRET_KEY: str = "CHANGE_ME"
 
     FIRST_SUPERUSER: str = "root@root.com"

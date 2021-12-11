@@ -13,7 +13,7 @@ from server.models.user import User
 from server.schemas.token import Token
 from server.schemas.users import User as UserSchema
 
-user_router = APIRouter(prefix="/users")
+user_router = APIRouter()
 
 
 @user_router.post("/login", response_model=Token)

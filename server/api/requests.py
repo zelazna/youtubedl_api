@@ -11,7 +11,7 @@ from server.crud.users import user
 from server.models.user import User
 from server.schemas.requests import RequestCreate, RequestInDB
 
-requests_router = APIRouter(prefix="/requests")
+requests_router = APIRouter()
 
 
 @requests_router.get("/", response_model=list[RequestInDB])
