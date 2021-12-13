@@ -1,5 +1,5 @@
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from pathlib import Path
 from typing import Any, Callable, cast
 
@@ -24,7 +24,7 @@ async def download_file(
     extension: str,
     progress_hook: Callable[..., Any] = None,
 ) -> VideoData:
-    loop, executor, convert_to = asyncio.get_running_loop(), ThreadPoolExecutor(), None
+    loop, convert_to = asyncio.get_running_loop(), None
 
     if extension in ExtensionNeedFFMPEG:
         extension, convert_to = "mp4", extension
@@ -35,17 +35,20 @@ async def download_file(
         await progress_hook()
 
     adapter = cast(BaseAdapter, settings.VIDEO_ADAPTER_IMPL)
-    file, thumbnail, name = await loop.run_in_executor(
-        executor,
-        adapter.download_video,
-        url,
-        settings.STATIC_FOLDER,
-        extension,
-    )
+
+    with ThreadPoolExecutor() as pool:
+        file, thumbnail, name = await loop.run_in_executor(
+            pool,
+            adapter.download_video,
+            url,
+            settings.STATIC_FOLDER,
+            extension,
+        )
     logger.debug("download of %s finished", name)
 
     if convert_to:
-        file = await loop.run_in_executor(
-            executor, convert_to_extension, file, convert_to
-        )
+        with ProcessPoolExecutor() as pool:
+            file = await loop.run_in_executor(
+                pool, convert_to_extension, file, convert_to
+            )
     return file, thumbnail, name
