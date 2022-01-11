@@ -1,11 +1,10 @@
-from typing import Generator
+from typing import Generator, Optional
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Query, WebSocket, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
-from sqlalchemy.orm.session import Session
 
 from server.core.security import ALGORITHM
 from server.core.settings import settings
@@ -39,6 +38,24 @@ def get_current_user(
     user_obj = user.get(db, id=token_data.sub)
     if not user_obj:
         raise HTTPException(status_code=404, detail="User not found")
+    return user_obj
+
+
+async def get_current_user_ws(
+    websocket: WebSocket,
+    db: Session = Depends(get_db),
+    token: Optional[str] = Query(None),
+) -> Optional[User]:
+    token_data, user_obj = None, None
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+        token_data = TokenPayload(**payload)
+    except (jwt.JWTError, ValidationError):
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+    if token_data:
+        user_obj = user.get(db, id=token_data.sub)
+        if not user_obj:
+            await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
     return user_obj
 
 

@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from server.core.downloader import download_file
 from server.core.settings import logger
-from server.core.ws_manager import broadcast_state
+from server.core.ws_manager import send_message
 from server.crud.downloads import download as crud_download
 from server.crud.requests import request
 from server.models.request import Request, State
@@ -14,7 +14,7 @@ from server.schemas.downloads import DownloadCreate
 
 async def next_state(db: Session, request_obj: Request, state: State):
     request.set_state(db, request_obj, state)
-    await broadcast_state(request_obj)
+    await send_message(request_obj)
 
 
 async def download(
@@ -23,7 +23,7 @@ async def download(
     extension: str = "mp4",
 ):
     try:
-        await broadcast_state(request_obj)
+        await send_message(request_obj)
         file, thumbnail, name = await download_file(
             request_obj.url,
             extension,
