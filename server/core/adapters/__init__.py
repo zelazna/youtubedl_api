@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from typing import Any, Optional
 
 
@@ -8,18 +9,22 @@ class VideoNotFound(Exception):
 VideoData = tuple[str, str, str]
 
 
-class BaseAdapter:
+class BaseAdapter(ABC):
+    @abstractmethod
     def on_progress_callback(self, stream: Any, chunk: bytes, bytes_remaining: int):
-        raise NotImplementedError
+        ...
 
+    @abstractmethod
     def on_complete_callback(self, stream: Any, file_path: Optional[str]):
-        raise NotImplementedError
+        ...
 
+    @abstractmethod
     def download_video(self, video: str, folder: str, file_extension: str) -> VideoData:
-        raise NotImplementedError
+        ...
 
+    @abstractmethod
     def download_playlist(self, url: str, folder: str) -> list[VideoData]:
-        raise NotImplementedError
+        ...
 
 
 from .pytube_adapter import PytubeAdapter

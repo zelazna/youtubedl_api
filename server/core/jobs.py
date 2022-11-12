@@ -31,7 +31,7 @@ async def download(
         )
     except Exception as e:
         await next_state(db, request_obj, State.in_error)
-        logger.error(e)
+        logger.error(e, exc_info=e)
     else:
         download = DownloadCreate(
             request_id=request_obj.id,

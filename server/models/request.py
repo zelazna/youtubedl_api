@@ -21,13 +21,13 @@ class State(enum.Enum):
 
 class Request(Base):
     type = Column("type", Enum(LinkType))
-    url = Column("url", String)
+    url: str = Column("url", String)
     state = Column("state", Enum(State), default=State.pending)
     extension = Column("extension", String)
     download = relationship(
         "Download", back_populates="request", uselist=False, cascade="all, delete"
     )
     owner = relationship("User", back_populates="request")
-    owner_id = Column(Integer, ForeignKey("user.id"))
+    owner_id: int = Column(Integer, ForeignKey("user.id"))
 
     __table_args__ = (UniqueConstraint("url", "extension"),)

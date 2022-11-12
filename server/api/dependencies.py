@@ -2,7 +2,7 @@ from typing import Generator, Optional
 
 from fastapi import Depends, HTTPException, Query, WebSocket, status
 from fastapi.security import OAuth2PasswordBearer
-from jose import jwt
+from jose import JWTError, jwt
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
@@ -30,7 +30,7 @@ def get_current_user(
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
         token_data = TokenPayload(**payload)
-    except (jwt.JWTError, ValidationError):
+    except (JWTError, ValidationError):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Could not validate credentials",
@@ -48,9 +48,9 @@ async def get_current_user_ws(
 ) -> Optional[User]:
     token_data, user_obj = None, None
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token or "", settings.SECRET_KEY, algorithms=[ALGORITHM])
         token_data = TokenPayload(**payload)
-    except (jwt.JWTError, ValidationError):
+    except (JWTError, ValidationError):
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
     if token_data:
         user_obj = user.get(db, id=token_data.sub)

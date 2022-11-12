@@ -1,5 +1,5 @@
 import asyncio
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 from typing import Any, Callable, cast
 
@@ -19,10 +19,14 @@ def convert_to_extension(file: str, extension: str) -> str:
     return new_filename
 
 
+async def noop():
+    ...
+
+
 async def download_file(
     url: str,
     extension: str,
-    progress_hook: Callable[..., Any] = None,
+    progress_hook: Callable[..., Any] = noop,
 ) -> VideoData:
     loop, convert_to = asyncio.get_running_loop(), None
 
@@ -36,14 +40,13 @@ async def download_file(
 
     adapter = cast(BaseAdapter, settings.VIDEO_ADAPTER_IMPL)
 
-    with ThreadPoolExecutor() as pool:
-        file, thumbnail, name = await loop.run_in_executor(
-            pool,
-            adapter.download_video,
-            url,
-            settings.STATIC_FOLDER,
-            extension,
-        )
+    file, thumbnail, name = await loop.run_in_executor(
+        None,
+        adapter.download_video,
+        url,
+        settings.STATIC_FOLDER,
+        extension,
+    )
     logger.debug("download of %s finished", name)
 
     if convert_to:
